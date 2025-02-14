@@ -23,33 +23,45 @@ db.connect((err) => {
 // Create HTTP server
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
-  const { pathname } = parsedUrl;
+  const { pathname, query } = parsedUrl;
 
-// Handle CORS preflight requests
-if (req.method === 'OPTIONS') {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
     res.writeHead(204, {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
     });
-    res.end(); // End the response
+    res.end();
     return;
-}
+  }
 
-  // Handle GET request (Fetch Patients)
-  if (req.method === "GET") {
-    db.query("SELECT * FROM Patients", (err, results) => {
+  // Set common response headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "*");
+  res.setHeader("Content-Type", "application/json");
+
+  // Handle GET request for executing queries
+  if (req.method === "GET" && pathname.startsWith("/sql/")) {
+    const sqlQuery = decodeURIComponent(pathname.replace("/sql/", ""));
+
+    if (!sqlQuery.toUpperCase().startsWith("SELECT")) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({ error: "Only SELECT queries are allowed" }));
+    }
+
+    db.query(sqlQuery, (err, results) => {
       if (err) {
-        res.writeHead(500, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
+        res.writeHead(500);
         return res.end(JSON.stringify({ error: err.message }));
       }
-      res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
+      res.writeHead(200);
       res.end(JSON.stringify(results));
     });
   }
 
-  // Handle POST request (Insert user)
-  else if (req.method === "POST") {
+  // Handle POST request for inserting patients
+  else if (req.method === "POST" && pathname === "/insert") {
     let body = "";
 
     req.on("data", (chunk) => {
@@ -58,24 +70,26 @@ if (req.method === 'OPTIONS') {
 
     req.on("end", () => {
       try {
-        const { name, dateOfBirth} = JSON.parse(body);
+        const patients = JSON.parse(body);
 
-        if (!name || !email) {
-          res.writeHead(400, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
-          return res.end(JSON.stringify({ error: "Name and dateOfBirth are required" }));
+        if (!Array.isArray(patients)) {
+          res.writeHead(400);
+          return res.end(JSON.stringify({ error: "Invalid input, expected an array" }));
         }
 
-        const sql = "INSERT INTO Patients (name, dateOfBirth) VALUES (?, ?)";
-        db.query(sql, [name, dateOfBirth], (err, result) => {
+        const values = patients.map(p => [p.name, p.dateOfBirth]);
+        const sql = "INSERT INTO Patients (name, dateOfBirth) VALUES ?";
+
+        db.query(sql, [values], (err, result) => {
           if (err) {
-            res.writeHead(500, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
+            res.writeHead(500);
             return res.end(JSON.stringify({ error: err.message }));
           }
-          res.writeHead(201, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ message: "User added", userId: result.insertId }));
+          res.writeHead(201);
+          res.end(JSON.stringify({ message: "Patients added", insertedRows: result.affectedRows }));
         });
       } catch (error) {
-        res.writeHead(400, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
+        res.writeHead(400);
         res.end(JSON.stringify({ error: "Invalid JSON format" }));
       }
     });
@@ -83,7 +97,7 @@ if (req.method === 'OPTIONS') {
 
   // Handle 404 Not Found
   else {
-    res.writeHead(404, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
+    res.writeHead(404);
     res.end(JSON.stringify({ error: "Route not found" }));
   }
 });
