@@ -25,6 +25,17 @@ const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const { pathname } = parsedUrl;
 
+// Handle CORS preflight requests
+if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    });
+    res.end(); // End the response
+    return;
+}
+
   // Handle GET request (Fetch Patients)
   if (req.method === "GET") {
     db.query("SELECT * FROM Patients", (err, results) => {
