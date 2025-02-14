@@ -53,8 +53,8 @@ const server = http.createServer((req, res) => {
           return res.end(JSON.stringify({ error: "Name and dateOfBirth are required" }));
         }
 
-        const sql = "INSERT INTO Patients (name, email) VALUES (?, ?)";
-        db.query(sql, [name, email], (err, result) => {
+        const sql = "INSERT INTO Patients (name, dateOfBirth) VALUES (?, ?)";
+        db.query(sql, [name, dateOfBirth], (err, result) => {
           if (err) {
             res.writeHead(500, { "Content-Type": "application/json" });
             return res.end(JSON.stringify({ error: err.message }));
