@@ -25,12 +25,35 @@ function insertPatients() {
 }
   
 function executeQuery() {
-}  
+    const query = document.getElementById("sqlQuery").value.trim();
+
+    if (query.toUpperCase().startsWith("SELECT")) {
+        fetch(`${API_URL}/sql/${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("response").innerText = JSON.stringify(data, null, 2);
+            })
+            .catch(err => console.error(messages.selectError, err));
+    } else if (query.toUpperCase().startsWith("INSERT")) {
+        fetch(`${API_URL}/insert`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("response").innerText = JSON.stringify(data, null, 2);
+        })
+        .catch(err => console.error(messages.insertError, err));
+    } else {
+        alert(messages.invalideQuery);
+    }
+} 
 
 document.getElementById("insertButton").addEventListener("click", function () {
     insertPatients();
-    });
+});
 
 document.getElementById("executeButton").addEventListener("click", function () {
     executeQuery();
-    });
+});
