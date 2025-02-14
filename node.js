@@ -12,7 +12,6 @@ const db = mysql.createConnection({
   port: process.env.PORT
 });
 
-
 db.connect((err) => {
   if (err) {
     console.error("Database connection failed:", err);
@@ -24,14 +23,14 @@ db.connect((err) => {
 // Create HTTP server
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
-  const { pathname, query } = parsedUrl;
+  const { pathname } = parsedUrl;
 
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
+      "Access-Control-Allow-Headers": "Content-Type",
     });
     res.end();
     return;
@@ -39,12 +38,17 @@ const server = http.createServer((req, res) => {
 
   // Set common response headers
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST");
   res.setHeader("Content-Type", "application/json");
 
-  // Handle GET request for executing queries
-  if (req.method === "GET") {
-    const sqlQuery = decodeURIComponent();
+  // Handle GET request for executing queries (Only SELECT allowed)
+  if (req.method === "GET" && pathname.startsWith("/api/v2/sql/")) {
+    const sqlQuery = decodeURIComponent(pathname.replace("/api/v2/sql/", ""));
+
+    if (!sqlQuery.toUpperCase().startsWith("SELECT")) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({ error: "Only SELECT queries are allowed" }));
+    }
 
     db.query(sqlQuery, (err, results) => {
       if (err) {
@@ -56,8 +60,8 @@ const server = http.createServer((req, res) => {
     });
   }
 
-  // Handle POST request for inserting patients
-  else if (req.method === "POST") {
+  // Handle POST request for inserting a patient
+  else if (req.method === "POST" && pathname === "/api/v2/insert") {
     let body = "";
 
     req.on("data", (chunk) => {
@@ -66,23 +70,21 @@ const server = http.createServer((req, res) => {
 
     req.on("end", () => {
       try {
-        const patients = JSON.parse(body);
+        const patient = JSON.parse(body); // Expecting a single patient object
 
-        if (!Array.isArray(patients)) {
+        if (!patient.name || !patient.dateOfBirth) {
           res.writeHead(400);
-          return res.end(JSON.stringify({ error: "Invalid input, expected an array" }));
+          return res.end(JSON.stringify({ error: "Missing name or dateOfBirth" }));
         }
 
-        const values = patients.map(p => [p.name, p.dateOfBirth]);
-        const sql = "INSERT INTO Patients (name, dateOfBirth) VALUES ?";
-
-        db.query(sql, [values], (err, result) => {
+        const sql = "INSERT INTO Patients (name, dateOfBirth) VALUES (?, ?)";
+        db.query(sql, [patient.name, patient.dateOfBirth], (err, result) => {
           if (err) {
             res.writeHead(500);
             return res.end(JSON.stringify({ error: err.message }));
           }
           res.writeHead(201);
-          res.end(JSON.stringify({ message: "Patients added", insertedRows: result.affectedRows }));
+          res.end(JSON.stringify({ message: "Patient added", insertedId: result.insertId }));
         });
       } catch (error) {
         res.writeHead(400);
