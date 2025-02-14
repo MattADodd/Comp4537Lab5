@@ -42,13 +42,8 @@ const server = http.createServer((req, res) => {
   res.setHeader("Content-Type", "application/json");
 
   // Handle GET request for executing queries
-  if (req.method === "GET" && pathname.startsWith("/sql/")) {
-    const sqlQuery = decodeURIComponent(pathname.replace("/sql/", ""));
-
-    if (!sqlQuery.toUpperCase().startsWith("SELECT")) {
-      res.writeHead(400);
-      return res.end(JSON.stringify({ error: "Only SELECT queries are allowed" }));
-    }
+  if (req.method === "GET") {
+    const sqlQuery = decodeURIComponent();
 
     db.query(sqlQuery, (err, results) => {
       if (err) {
@@ -61,7 +56,7 @@ const server = http.createServer((req, res) => {
   }
 
   // Handle POST request for inserting patients
-  else if (req.method === "POST" && pathname === "/insert") {
+  else if (req.method === "POST") {
     let body = "";
 
     req.on("data", (chunk) => {
