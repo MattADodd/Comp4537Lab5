@@ -28,10 +28,10 @@ const server = http.createServer((req, res) => {
   if (req.method === "GET") {
     db.query("SELECT * FROM Patients", (err, results) => {
       if (err) {
-        res.writeHead(500, { "Content-Type": "application/json" });
+        res.writeHead(500, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
         return res.end(JSON.stringify({ error: err.message }));
       }
-      res.writeHead(200, { "Content-Type": "application/json" });
+      res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
       res.end(JSON.stringify(results));
     });
   }
@@ -49,21 +49,21 @@ const server = http.createServer((req, res) => {
         const { name, dateOfBirth} = JSON.parse(body);
 
         if (!name || !email) {
-          res.writeHead(400, { "Content-Type": "application/json" });
+          res.writeHead(400, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
           return res.end(JSON.stringify({ error: "Name and dateOfBirth are required" }));
         }
 
         const sql = "INSERT INTO Patients (name, dateOfBirth) VALUES (?, ?)";
         db.query(sql, [name, dateOfBirth], (err, result) => {
           if (err) {
-            res.writeHead(500, { "Content-Type": "application/json" });
+            res.writeHead(500, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
             return res.end(JSON.stringify({ error: err.message }));
           }
           res.writeHead(201, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ message: "User added", userId: result.insertId }));
         });
       } catch (error) {
-        res.writeHead(400, { "Content-Type": "application/json" });
+        res.writeHead(400, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
         res.end(JSON.stringify({ error: "Invalid JSON format" }));
       }
     });
@@ -71,7 +71,7 @@ const server = http.createServer((req, res) => {
 
   // Handle 404 Not Found
   else {
-    res.writeHead(404, { "Content-Type": "application/json" });
+    res.writeHead(404, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "*" });
     res.end(JSON.stringify({ error: "Route not found" }));
   }
 });
