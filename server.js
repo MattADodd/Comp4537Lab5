@@ -12,7 +12,7 @@ const CREATE_TABLE = `
     `;
 let tableCreating = false;
 
-
+console.log(process.env.DB_HOST);
 // Create MySQL connection
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
