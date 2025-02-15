@@ -69,7 +69,7 @@ const server = http.createServer((req, res) => {
   res.setHeader("Content-Type", "application/json");
 
   // Handle GET request for executing queries (Only SELECT allowed)
-  if (req.method === "GET" && pathname.startsWith("/api/sql/")) {
+  if (req.method === "GET" && pathname.startsWith("/api/v1/sql/")) {
     const sqlQuery = decodeURIComponent(pathname.replace("/api/sql/", ""));
 
     if (!sqlQuery.toUpperCase().startsWith("SELECT")) {
@@ -88,7 +88,7 @@ const server = http.createServer((req, res) => {
   }
 
   // Handle POST request for inserting a patient
-  else if (req.method === "POST" && pathname === "/insert") {
+  else if (req.method === "POST" && pathname === "/api/v1/sql/") {
     let body = "";
 
     req.on("data", (chunk) => {

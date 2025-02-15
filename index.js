@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000"; // Change this to your actual backend URL
+const API_URL = "whale-app-mzuef.ondigitalocean.app/lab5/api/v1/sql/"; // Change this to your actual backend URL
 import { messages } from "./lang/messages/en/messages.js";
 const patients = [
     { name: "Sara Brown", dateOfBirth: "1901-01-01" },
@@ -10,7 +10,7 @@ const patients = [
 function insertPatients() {
     Promise.all(
         patients.map(patient =>
-            fetch(`${API_URL}/insert`, {
+            fetch(`${API_URL}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(patient),
@@ -28,14 +28,14 @@ function executeQuery() {
     const query = document.getElementById("sqlQuery").value.trim();
 
     if (query.toUpperCase().startsWith("SELECT")) {
-        fetch(`${API_URL}/api/sql/${encodeURIComponent(query)}`)
+        fetch(`${API_URL}${encodeURIComponent(query)}`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById("response").innerText = JSON.stringify(data, null, 2);
             })
             .catch(err => console.error(messages.selectError, err));
     } else if (query.toUpperCase().startsWith("INSERT")) {
-        fetch(`${API_URL}/insert`, {
+        fetch(`${API_URL}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query })
