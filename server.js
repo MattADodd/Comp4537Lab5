@@ -12,7 +12,6 @@ const CREATE_TABLE = `
     `;
 let tableCreating = false;
 
-console.log(process.env.DB_HOST);
 // Create MySQL connection
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -71,7 +70,7 @@ const server = http.createServer((req, res) => {
 
   // Handle GET request for executing queries (Only SELECT allowed)
   if (req.method === "GET" && pathname.startsWith("/api/v1/sql/")) {
-    const sqlQuery = decodeURIComponent(pathname.replace("/api/sql/", ""));
+    const sqlQuery = decodeURIComponent(pathname.replace("/api/v1/sql/", ""));
 
     if (!sqlQuery.toUpperCase().startsWith("SELECT")) {
       res.writeHead(400);
