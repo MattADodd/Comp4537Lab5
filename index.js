@@ -1,4 +1,4 @@
-const API_URL = "whale-app-mzuef.ondigitalocean.app/lab5/api/v1/sql/"; // Change this to your actual backend URL
+const API_URL = "https://whale-app-mzuef.ondigitalocean.app/lab5/api/v1/sql/"; // Change this to your actual backend URL
 import { messages } from "./lang/messages/en/messages.js";
 const patients = [
     { name: "Sara Brown", dateOfBirth: "1901-01-01" },
