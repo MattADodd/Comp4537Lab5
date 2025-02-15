@@ -2,7 +2,6 @@ require("dotenv").config();
 const http = require("http");
 const mysql = require("mysql2");
 const url = require("url");
-//const caCertificate = Buffer.from(process.env.DB_SSL_CERT_BASE64, "base64").toString("utf-8");
 const GET_TABLE = "SHOW TABLES LIKE 'Patients'";
 const CREATE_TABLE = `
       CREATE TABLE Patients (
