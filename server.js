@@ -2,6 +2,16 @@ require("dotenv").config();
 const http = require("http");
 const mysql = require("mysql2");
 const url = require("url");
+const GET_TABLE = "SHOW TABLES LIKE 'Patients'";
+const CREATE_TABLE = `
+      CREATE TABLE Patients (
+        id INT(11) AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        dateOfBirth DATE NOT NULL
+      ) ENGINE=InnoDB;
+    `;
+let tableCreating = false;
+
 
 // Create MySQL connection
 const db = mysql.createConnection({
@@ -36,7 +46,24 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Set common response headers
+  db.query(GET_TABLE, (err, results) => {
+    if (err) {
+      console.error("Error checking table existence:", err);
+      return;
+    }
+
+    if (results.length === 0 && !tableCreating) {
+      tableCreating = true;
+      db.query(CREATE_TABLE, (err, result) => {
+        tableCreating = false;
+        if (err) {
+          console.error("Error creating table:", err);
+          return;
+        }
+        console.log(`Table Patients created with InnoDB engine.`);
+      });
+    }
+    // Set common response headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST");
   res.setHeader("Content-Type", "application/json");
@@ -112,6 +139,9 @@ const server = http.createServer((req, res) => {
     res.writeHead(404);
     res.end(JSON.stringify({ error: "Route not found" }));
   }
+  });
+
+  
 });
 
 // Start server on port 3000
