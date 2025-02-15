@@ -1,5 +1,5 @@
-const API_URL = "https://your-server2-url.com/api/v1"; // Change this to your actual backend URL
-const messages = require("./lang/messages/en/messages"); // Import message constants for responses
+const API_URL = "http://localhost:3000"; // Change this to your actual backend URL
+import { messages } from "./lang/messages/en/messages.js";
 const patients = [
     { name: "Sara Brown", dateOfBirth: "1901-01-01" },
     { name: "John Smith", dateOfBirth: "1941-01-01" },
@@ -28,7 +28,7 @@ function executeQuery() {
     const query = document.getElementById("sqlQuery").value.trim();
 
     if (query.toUpperCase().startsWith("SELECT")) {
-        fetch(`${API_URL}/sql/${encodeURIComponent(query)}`)
+        fetch(`${API_URL}/api/sql/${encodeURIComponent(query)}`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById("response").innerText = JSON.stringify(data, null, 2);

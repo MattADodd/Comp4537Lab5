@@ -42,8 +42,8 @@ const server = http.createServer((req, res) => {
   res.setHeader("Content-Type", "application/json");
 
   // Handle GET request for executing queries (Only SELECT allowed)
-  if (req.method === "GET" && pathname.startsWith("/api/v2/sql/")) {
-    const sqlQuery = decodeURIComponent(pathname.replace("/api/v2/sql/", ""));
+  if (req.method === "GET" && pathname.startsWith("/api/sql/")) {
+    const sqlQuery = decodeURIComponent(pathname.replace("/api/sql/", ""));
 
     if (!sqlQuery.toUpperCase().startsWith("SELECT")) {
       res.writeHead(400);
@@ -61,7 +61,7 @@ const server = http.createServer((req, res) => {
   }
 
   // Handle POST request for inserting a patient
-  else if (req.method === "POST" && pathname === "/api/v2/insert") {
+  else if (req.method === "POST" && pathname === "/insert") {
     let body = "";
 
     req.on("data", (chunk) => {
@@ -71,8 +71,22 @@ const server = http.createServer((req, res) => {
     req.on("end", () => {
       try {
         const patient = JSON.parse(body); // Expecting a single patient object
+        console.log(patient);
 
         if (!patient.name || !patient.dateOfBirth) {
+          if (patient.query) {
+            const sql = patient.query;
+            db.query(sql, (err, result) => {
+              if (err) {
+                res.writeHead(500);
+                return res.end(JSON.stringify({ error: err.message }));
+              }
+              res.writeHead(201);
+              res.end(JSON.stringify({ message: "Patient added", insertedId: result.insertId }));
+            });
+            return;
+          }
+
           res.writeHead(400);
           return res.end(JSON.stringify({ error: "Missing name or dateOfBirth" }));
         }
