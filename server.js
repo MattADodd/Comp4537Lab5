@@ -2,8 +2,6 @@ require("dotenv").config();
 const http = require("http");
 const mysql = require("mysql2");
 const url = require("url");
-const fs = require("fs");
-const path = require("path");
 const GET_TABLE = "SHOW TABLES LIKE 'Patients'";
 const CREATE_TABLE = `
       CREATE TABLE Patients (
@@ -21,10 +19,7 @@ const db = mysql.createConnection({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: 25060,
-  ssl: {
-    rejectUnauthorized: true,
-    ca: fs.readFileSync(path.join(__dirname, 'ca-certificate.crt')).toString()
-  }
+  ssl: process.env.DB_SSL === 'REQUIRED' ? { rejectUnauthorized: false } : null
 });
 
 db.connect((err) => {
