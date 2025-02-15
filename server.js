@@ -19,7 +19,7 @@ const db = mysql.createConnection({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: 25060,
-  ssl: process.env.DB_SSL === 'REQUIRED' ? { rejectUnauthorized: false } : null
+  ssl: process.env.DB_SSL === 'REQUIRED' ? { rejectUnauthorized: false } : null //ChatGPT gave this line
 });
 
 db.connect((err) => {
