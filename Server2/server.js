@@ -1,6 +1,6 @@
 const http = require("http");
 const url = require("url");
-const db = require("./modules/dbHandler.js"); // Import the Database class
+const db = require("../modules/dbHandler.js"); // Import the Database class
 
 const GET_TABLE = "SHOW TABLES LIKE 'Patients'";
 const CREATE_TABLE = `

@@ -1,6 +1,6 @@
 // ChatGPT was used to help make some of the code below
 const API_URL = "https://whale-app-mzuef.ondigitalocean.app/lab5/api/v1/sql/";
-import { messages } from "./lang/messages/en/messages.js";
+import { messages } from "../lang/messages/en/messages.js";
 // Sample patient data to be inserted into the database
 const patients = [
     { name: "Sara Brown", dateOfBirth: "1901-01-01" },
