@@ -29,19 +29,19 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  try {
-    const results = await db.query(GET_TABLE);
-    if (results.length === 0 && !tableCreating) {
-      tableCreating = true;
-      await db.query(CREATE_TABLE);
-      console.log("Table Patients created with InnoDB engine.");
-      tableCreating = false;
-    }
-  } catch (error) {
-    console.error("Error checking table existence:", error);
-    res.writeHead(500);
-    return res.end(JSON.stringify({ error: "Database error" }));
-  }
+  // try {
+  //   const results = await db.query(GET_TABLE);
+  //   if (results.length === 0 && !tableCreating) {
+  //     tableCreating = true;
+  //     await db.query(CREATE_TABLE);
+  //     console.log("Table Patients created with InnoDB engine.");
+  //     tableCreating = false;
+  //   }
+  // } catch (error) {
+  //   console.error("Error checking table existence:", error);
+  //   res.writeHead(500);
+  //   return res.end(JSON.stringify({ error: "Database error" }));
+  // }
 
   // Set common response headers
   res.setHeader("Access-Control-Allow-Origin", "*");
