@@ -11,22 +11,19 @@ const patients = [
 
 // Function to insert sample patients into the database
 function insertPatients() {
-    Promise.all(
-        patients.map(patient =>
-            fetch(`${API_URL}`, {
-                method: "POST", // HTTP method to insert data
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(patient), // Convert patient object to JSON
-            })
-            .then(res => res.json()) // Parse the response as JSON
-        )
-    )
+    fetch(`${API_URL}`, {
+        method: "POST", // HTTP method to insert data
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patients), // Send all patients as an array
+    })
+    .then(res => res.json()) // Parse the response as JSON
     .then(results => {
         // Display the API response in the UI
         document.getElementById("response").innerText = JSON.stringify(results, null, 2);
     })
     .catch(err => console.error(err)); // Handle any errors
 }
+
   
 // Function to execute user-provided SQL queries
 function executeQuery() {

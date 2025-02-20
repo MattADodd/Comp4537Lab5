@@ -88,9 +88,16 @@ const server = http.createServer(async (req, res) => {
   
         // Execute the query with the array of values
         await db.query(sql, [values]);
+
+        const insertedIdsStart = result.insertId;
+        const insertedPatients = patients.map((patient, index) => ({
+        id: insertedIdsStart + index, // Assuming auto-increment IDs are sequential
+        name: patient.name,
+        dateOfBirth: patient.dateOfBirth,
+      }));
   
         res.writeHead(201);
-        res.end(JSON.stringify({ message: "Patients added successfully" }));
+        res.end(JSON.stringify({ message: "Patients added successfully", patients: insertedPatients }));
       } catch (error) {
         res.writeHead(400);
         res.end(JSON.stringify({ error: "Invalid JSON format or database error" }));
