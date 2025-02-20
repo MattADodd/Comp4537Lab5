@@ -70,37 +70,30 @@ const server = http.createServer(async (req, res) => {
   else if (req.method === "POST" && pathname === "/api/v1/sql/") {
     let body = "";
     req.on("data", (chunk) => (body += chunk.toString()));
-
+  
     req.on("end", async () => {
       try {
-        const patient = JSON.parse(body);
-        console.log(patient);
-
-        if (!patient.name || !patient.dateOfBirth) {
-          if (patient.query) {
-            try {
-              await db.query(patient.query);
-              res.writeHead(201);
-              res.end(JSON.stringify({ message: "Query executed successfully" }));
-            } catch (error) {
-              res.writeHead(500);
-              res.end(JSON.stringify({ error: error.message }));
-            }
-            return;
-          }
-
+        const patients = JSON.parse(body);
+        console.log(patients);
+  
+        // Ensure the data contains patients and they have name and dateOfBirth
+        if (!Array.isArray(patients) || !patients.every(patient => patient.name && patient.dateOfBirth)) {
           res.writeHead(400);
-          return res.end(JSON.stringify({ error: "Missing name or dateOfBirth" }));
+          return res.end(JSON.stringify({ error: "Missing name or dateOfBirth for one or more patients" }));
         }
-
-        const sql = "INSERT INTO Patients (name, dateOfBirth) VALUES (?, ?)";
-        const result = await db.query(sql, [patient.name, patient.dateOfBirth]);
-
+  
+        // Build the SQL query with placeholders for multiple patients
+        const sql = "INSERT INTO Patients (name, dateOfBirth) VALUES ?";
+        const values = patients.map(patient => [patient.name, patient.dateOfBirth]);
+  
+        // Execute the query with the array of values
+        await db.query(sql, [values]);
+  
         res.writeHead(201);
-        res.end(JSON.stringify({ message: "Patient added", insertedId: result.insertId }));
+        res.end(JSON.stringify({ message: "Patients added successfully" }));
       } catch (error) {
         res.writeHead(400);
-        res.end(JSON.stringify({ error: "Invalid JSON format" }));
+        res.end(JSON.stringify({ error: "Invalid JSON format or database error" }));
       }
     });
   }
