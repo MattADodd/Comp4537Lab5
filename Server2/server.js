@@ -1,6 +1,8 @@
 const http = require("http");
 const url = require("url");
 const db = require("../modules/dbHandler.js"); // Import the database handler module
+import { messages } from "../lang/messages/en/messages.js";
+
 
 // SQL query to check if the "Patients" table exists
 const GET_TABLE = "SHOW TABLES LIKE 'Patients'";
@@ -44,7 +46,7 @@ const server = http.createServer(async (req, res) => {
   } catch (error) {
     console.error("Error checking table existence:", error);
     res.writeHead(500);
-    return res.end(JSON.stringify({ error: "Database error" }));
+    return res.end(JSON.stringify({ error: messages.dbError }));
   }
 
   // Set common response headers
@@ -58,8 +60,8 @@ const server = http.createServer(async (req, res) => {
 
     // Ensure only SELECT queries are executed
     if (!sqlQuery.toUpperCase().startsWith("SELECT")) {
-      res.writeHead(400);
-      return res.end(JSON.stringify({ error: "Only SELECT queries are allowed" }));
+      res.writeHead(404);
+      return res.end(JSON.stringify({ error: messages.selectOnly }));
     }
 
     try {
@@ -91,7 +93,7 @@ const server = http.createServer(async (req, res) => {
             const query = patients.query;
             await db.query(query);
             res.writeHead(201);
-            res.end(JSON.stringify({ message: "Query success!" }));
+            res.end(JSON.stringify({ message: messages.success }));
             return;
           }
         }
@@ -113,10 +115,10 @@ const server = http.createServer(async (req, res) => {
         }));
 
         res.writeHead(201);
-        res.end(JSON.stringify({ message: "Patients added successfully", patients: insertedPatients }));
+        res.end(JSON.stringify({ message: messages.success, patients: insertedPatients }));
       } catch (error) {
-        res.writeHead(400);
-        res.end(JSON.stringify({ error: "Invalid JSON format or database error" }));
+        res.writeHead(404);
+        res.end(JSON.stringify({ error: error.message }));
       }
     });
   }
@@ -124,7 +126,7 @@ const server = http.createServer(async (req, res) => {
   // Handle 404 for unrecognized routes
   else {
     res.writeHead(404);
-    res.end(JSON.stringify({ error: "Route not found" }));
+    res.end(JSON.stringify({ error: messages.routeNotFound }));
   }
 });
 
