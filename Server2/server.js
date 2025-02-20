@@ -87,7 +87,7 @@ const server = http.createServer(async (req, res) => {
         const values = patients.map(patient => [patient.name, patient.dateOfBirth]);
   
         // Execute the query with the array of values
-        await db.query(sql, [values]);
+        const result = await db.query(sql, [values]);
 
         const insertedIdsStart = result.insertId;
         const insertedPatients = patients.map((patient, index) => ({
