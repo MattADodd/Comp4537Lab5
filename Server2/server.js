@@ -1,24 +1,27 @@
 const http = require("http");
 const url = require("url");
-const db = require("../modules/dbHandler.js"); // Import the Database class
+const db = require("../modules/dbHandler.js"); // Import the database handler module
 
+// SQL query to check if the "Patients" table exists
 const GET_TABLE = "SHOW TABLES LIKE 'Patients'";
+
+// SQL query to create the "Patients" table if it does not exist
 const CREATE_TABLE = `
   CREATE TABLE Patients (
-    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    dateOfBirth DATE NOT NULL
-  ) ENGINE=InnoDB;
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,  
+    name VARCHAR(100) NOT NULL,             
+    dateOfBirth DATE NOT NULL               
+  ) ENGINE=InnoDB;                          
 `;
 
-let tableCreating = false;
+let tableCreating = false; // Flag to prevent multiple table creation attempts
 
 // Create HTTP server
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const { pathname } = parsedUrl;
 
-  // Handle CORS preflight requests
+  // Handle CORS preflight requests (for cross-origin support)
   if (req.method === "OPTIONS") {
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*",
@@ -30,10 +33,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
+    // Check if the "Patients" table exists
     const results = await db.query(GET_TABLE);
     if (results.length === 0 && !tableCreating) {
       tableCreating = true;
-      await db.query(CREATE_TABLE);
+      await db.query(CREATE_TABLE); // Create table if it doesn't exist
       console.log("Table Patients created with InnoDB engine.");
       tableCreating = false;
     }
@@ -48,54 +52,60 @@ const server = http.createServer(async (req, res) => {
   res.setHeader("Access-Control-Allow-Methods", "GET, POST");
   res.setHeader("Content-Type", "application/json");
 
-  // Handle GET request for executing queries (Only SELECT allowed)
+  // Handle GET request for executing SQL queries (Only SELECT queries are allowed)
   if (req.method === "GET" && pathname.startsWith("/api/v1/sql/")) {
-    const sqlQuery = decodeURIComponent(pathname.replace("/api/v1/sql/", ""));
+    const sqlQuery = decodeURIComponent(pathname.replace("/api/v1/sql/", "")); // Extract query from URL
+
+    // Ensure only SELECT queries are executed
     if (!sqlQuery.toUpperCase().startsWith("SELECT")) {
       res.writeHead(400);
       return res.end(JSON.stringify({ error: "Only SELECT queries are allowed" }));
     }
 
     try {
-      const results = await db.query(sqlQuery);
+      const results = await db.query(sqlQuery); // Execute the SELECT query
       res.writeHead(200);
-      res.end(JSON.stringify(results));
+      res.end(JSON.stringify(results)); // Return query results as JSON
     } catch (error) {
       res.writeHead(500);
       res.end(JSON.stringify({ error: error.message }));
     }
   }
 
-  // Handle POST request for inserting a patient
+  // Handle POST request for inserting multiple patients
   else if (req.method === "POST" && pathname === "/api/v1/sql/") {
     let body = "";
+
+    // Collect request body data
     req.on("data", (chunk) => (body += chunk.toString()));
-  
+
     req.on("end", async () => {
       try {
-        const patients = JSON.parse(body);
+        const patients = JSON.parse(body); // Parse JSON data
         console.log(patients);
-  
-        // Ensure the data contains patients and they have name and dateOfBirth
+
+        // Validate that the data is an array and contains valid patient objects
         if (!Array.isArray(patients) || !patients.every(patient => patient.name && patient.dateOfBirth)) {
           res.writeHead(400);
           return res.end(JSON.stringify({ error: "Missing name or dateOfBirth for one or more patients" }));
         }
-  
-        // Build the SQL query with placeholders for multiple patients
-        const sql = "INSERT INTO Patients (name, dateOfBirth) VALUES ?";
-        const values = patients.map(patient => [patient.name, patient.dateOfBirth]);
-  
-        // Execute the query with the array of values
-        const result = await db.query(sql, [values]);
 
+        // Prepare SQL statement with multiple placeholders for batch insert
+        const values = patients.flatMap(patient => [patient.name, patient.dateOfBirth]);
+        const placeholders = patients.map(() => "(?, ?)").join(", ");
+        const sql = `INSERT INTO Patients (name, dateOfBirth) VALUES ${placeholders}`;
+
+        // Execute the bulk insert query
+        const result = await db.query(sql, values);
+
+        // Generate response with inserted patient IDs (assuming auto-increment)
         const insertedIdsStart = result.insertId;
         const insertedPatients = patients.map((patient, index) => ({
-        id: insertedIdsStart + index, // Assuming auto-increment IDs are sequential
-        name: patient.name,
-        dateOfBirth: patient.dateOfBirth,
-      }));
-  
+          id: insertedIdsStart + index, // Assign sequential IDs based on auto-increment
+          name: patient.name,
+          dateOfBirth: patient.dateOfBirth,
+        }));
+
         res.writeHead(201);
         res.end(JSON.stringify({ message: "Patients added successfully", patients: insertedPatients }));
       } catch (error) {
@@ -105,14 +115,14 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  // Handle 404 Not Found
+  // Handle 404 for unrecognized routes
   else {
     res.writeHead(404);
     res.end(JSON.stringify({ error: "Route not found" }));
   }
 });
 
-// Start server on port 3000
+// Start the server on port 3000
 server.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
 });
