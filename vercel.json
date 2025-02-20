@@ -1,0 +1,14 @@
+{
+    "headers": [
+      {
+        "source": "/Server1/index.js",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/javascript"
+          }
+        ]
+      }
+    ]
+  }
+  
