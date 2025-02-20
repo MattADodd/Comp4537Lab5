@@ -1,7 +1,7 @@
 const http = require("http");
 const url = require("url");
 const db = require("../modules/dbHandler.js"); // Import the database handler module
-import { messages } from "../lang/messages/en/messages.js";
+const { messages } = require("../lang/messages/en/messages.js");
 
 
 // SQL query to check if the "Patients" table exists
